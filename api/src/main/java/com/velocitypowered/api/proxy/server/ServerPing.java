@@ -30,10 +30,17 @@ public final class ServerPing {
   private final net.kyori.adventure.text.Component description;
   private final @Nullable Favicon favicon;
   private final @Nullable ModInfo modinfo;
+  private final @Nullable String rawJson;
 
   public ServerPing(Version version, @Nullable Players players,
       net.kyori.adventure.text.Component description, @Nullable Favicon favicon) {
-    this(version, players, description, favicon, ModInfo.DEFAULT);
+    this(version, players, description, favicon, ModInfo.DEFAULT, null);
+  }
+
+  public ServerPing(Version version, @Nullable Players players,
+                    net.kyori.adventure.text.Component description, @Nullable Favicon favicon,
+                    @Nullable ModInfo modinfo) {
+    this(version, players, description, favicon, modinfo, null);
   }
 
   /**
@@ -47,12 +54,13 @@ public final class ServerPing {
    */
   public ServerPing(Version version, @Nullable Players players,
       net.kyori.adventure.text.Component description, @Nullable Favicon favicon,
-      @Nullable ModInfo modinfo) {
+      @Nullable ModInfo modinfo, @Nullable String rawJson) {
     this.version = Preconditions.checkNotNull(version, "version");
     this.players = players;
     this.description = Preconditions.checkNotNull(description, "description");
     this.favicon = favicon;
     this.modinfo = modinfo;
+    this.rawJson = rawJson;
   }
 
   public Version getVersion() {
@@ -73,6 +81,10 @@ public final class ServerPing {
 
   public Optional<ModInfo> getModinfo() {
     return Optional.ofNullable(modinfo);
+  }
+
+  public Optional<String> getRawJson() {
+    return Optional.ofNullable(rawJson);
   }
 
   @Override
@@ -127,11 +139,13 @@ public final class ServerPing {
     }
     builder.description = description;
     builder.favicon = favicon;
+    builder.rawJson = rawJson;
     builder.nullOutModinfo = modinfo == null;
     if (modinfo != null) {
       builder.modType = modinfo.getType();
       builder.mods.addAll(modinfo.getMods());
     }
+
     return builder;
   }
 
@@ -152,6 +166,7 @@ public final class ServerPing {
     private final List<ModInfo.Mod> mods = new ArrayList<>();
     private net.kyori.adventure.text.Component description;
     private @Nullable Favicon favicon;
+    private @Nullable String rawJson = null;
     private boolean nullOutPlayers;
     private boolean nullOutModinfo;
 
@@ -200,6 +215,11 @@ public final class ServerPing {
       this.modType = mods.getType();
       this.mods.clear();
       this.mods.addAll(mods.getMods());
+      return this;
+    }
+
+    public Builder rawJson(String rawJson) {
+      this.rawJson = rawJson;
       return this;
     }
 
@@ -253,7 +273,7 @@ public final class ServerPing {
       }
       return new ServerPing(version,
           nullOutPlayers ? null : new Players(onlinePlayers, maximumPlayers, samplePlayers),
-          description, favicon, nullOutModinfo ? null : new ModInfo(modType, mods));
+          description, favicon, nullOutModinfo ? null : new ModInfo(modType, mods), rawJson);
     }
 
     public Version getVersion() {

@@ -18,6 +18,7 @@
 package com.velocitypowered.proxy.connection.client;
 
 import com.velocitypowered.api.event.proxy.ProxyPingEvent;
+import com.velocitypowered.api.proxy.server.ServerPing;
 import com.velocitypowered.proxy.VelocityServer;
 import com.velocitypowered.proxy.connection.MinecraftConnection;
 import com.velocitypowered.proxy.connection.MinecraftSessionHandler;
@@ -100,9 +101,14 @@ public class StatusSessionHandler implements MinecraftSessionHandler {
         .thenAcceptAsync(
             (event) -> {
               if (event.getResult().isAllowed()) {
-                final StringBuilder json = new StringBuilder();
-                VelocityServer.getPingGsonInstance(connection.getProtocolVersion())
-                        .toJson(event.getPing(), json);
+                StringBuilder json = new StringBuilder();
+                ServerPing ping = event.getPing();
+                if (ping.getRawJson().isPresent()) {
+                  json = new StringBuilder(ping.getRawJson().get());
+                } else {
+                  VelocityServer.getPingGsonInstance(connection.getProtocolVersion())
+                          .toJson(event.getPing(), json);
+                }
                 connection.write(new StatusResponsePacket(json));
               } else {
                 connection.close();
